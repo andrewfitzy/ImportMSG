@@ -1,0 +1,1 @@
+This plugin allows the import of MSG files into the Palantir platform

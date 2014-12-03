@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ivy-module version="2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+    <info
+        organisation="about80minutes"
+        module="ImportMSG">
+    </info>
+    <configurations>
+        <conf name="build" description="Libraries needed to for compilation"/>
+        <conf name="test" extends="build" description="Libraries that need to be included for testing" />
+    </configurations>
+    <publications>
+        <artifact />
+    </publications>
+    <dependencies>
+        <dependency org="junit" name="junit" rev="4.10" conf="test->default"/>
+        <dependency org="org.mockito" name="mockito-all" rev="1.9.5" conf="test->default"/>
+    </dependencies>
+</ivy-module>

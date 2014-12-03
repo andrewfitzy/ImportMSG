@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<project default="par" name="ImportMSG" xmlns:ivy="antlib:org.apache.ivy.ant">
+	<property name="jarname" value="${ant.project.name}"/>
+	<property name="lib.dir" value="${basedir}/lib"/>
+	<property name="src.dir" value="${basedir}/src"/>
+	<property name="test.src.dir" value="${basedir}/test"/>
+	<property name="bin.dir" value="${basedir}/bin"/>
+	<property name="resources.dir" value="${basedir}/resources"/>
+	<property name="build.base.dir" value="${basedir}/build"/>
+	<property name="build.cls.dir" value="${build.base.dir}/cls"/>
+	<property name="build.test.cls.dir" value="${build.base.dir}/test"/>
+	<property name="build.tmp.dir" value="${build.base.dir}/tmp"/>
+	<property name="build.par.dir" value="${build.base.dir}/par"/>
+	<property name="dist.base.dir" value="${basedir}/dist"/>
+	<property name="dist.lib.dir" value="${dist.base.dir}/lib"/>
+	<property name="dist.bin.dir" value="${dist.base.dir}/bin"/>
+	
+	<property name="ivy.settings.dir" value="${basedir}" />
+	<property name="report.dir" value="${basedir}/reports"/>
+	<property name="report.junit.dir" value="${report.dir}/junitreport"/>
+	<property name="report.ivy.dir" value="${report.dir}/ivy"/>
+	
+	<condition property="test.src.dir.exists">
+        <and>
+            <available file="${test.src.dir}" type="dir"/>
+        </and>
+    </condition>
+	
+	<path id="palantir-classpath">
+		<fileset dir="${palantir.home}/lib">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	<path id="project-classpath">
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	<path id="compile-classpath">
+		<path refid="project-classpath"/>
+		<path refid="palantir-classpath"/>
+		<pathelement location="${resources.dir}"/>
+	</path>
+	
+	<ivy:settings file="${ivy.settings.dir}/ivysettings.xml" />
+	
+	<target name="clean">
+		<delete dir="${dist.base.dir}" failonerror="false"/>
+		<delete dir="${build.base.dir}" failonerror="false"/>
+	</target>
+	
+	<target name="init">
+		<mkdir dir="${dist.lib.dir}"/>
+		<mkdir dir="${dist.bin.dir}"/>
+		<mkdir dir="${build.cls.dir}"/>
+		<mkdir dir="${build.test.cls.dir}"/>
+		<mkdir dir="${build.tmp.dir}"/>
+		<mkdir dir="${build.par.dir}"/>
+		<mkdir dir="${build.par.dir}/classes"/>
+		<mkdir dir="${build.par.dir}/lib"/>
+		
+		<ivy:cachepath pathid="ivy.build.path" conf="build"/>
+		<ivy:cachepath pathid="ivy.test.path" conf="test"/>
+	</target>
+	
+	<target name="resolve" description="--> resolve and retrieve dependencies with ivy">
+        <ivy:resolve refresh="true"/>
+        <ivy:retrieve sync="true"/>
+    </target>
+    
+    <target name="report" depends="resolve" description="--> generates a report of dependencies">
+        <ivy:report todir="${report.ivy.dir}" dot="true"/>
+    </target>
+	
+	<target depends="clean,init, resolve" name="compile">
+		<javac debug="true" deprecation="false" destdir="${build.cls.dir}" failonerror="true" memorymaximumsize="512m" optimize="false">
+			<src path="${src.dir}"/>
+			<classpath>
+                <path refid="compile-classpath"/>
+                <path refid="ivy.build.path"/>
+            </classpath>
+		</javac>
+	</target>
+	
+	<target name="junit" depends="compile" if="${test.src.dir.exists}">
+        <mkdir dir="${report.junit.dir}"/>
+        <javac debug="true" deprecation="false" destdir="${build.test.cls.dir}" failonerror="true" memorymaximumsize="512m" optimize="false">
+            <src path="${test.src.dir}"/>
+            <classpath>
+                <pathelement path="${build.cls.dir}"/>
+                <path refid="compile-classpath"/>
+                <path refid="ivy.test.path"/>
+            </classpath>
+        </javac>
+        <junit printsummary="yes" haltonfailure="yes">
+            <classpath>
+                <pathelement path="${build.test.cls.dir}"/>
+                <pathelement path="${build.cls.dir}"/>
+                <path refid="compile-classpath"/>
+                <path refid="ivy.test.path"/>
+                <!-- add path to classes here -->
+            </classpath>
+            
+            <formatter type="xml"/>
+            
+            <batchtest todir="${report.junit.dir}">
+                <fileset dir="${test.src.dir}" includes="**/*Test.java"/>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="junitreport">
+        <junitreport todir="${report.junit.dir}">
+            <fileset dir="${report.junit.dir}" includes="TEST-*.xml"/>
+            <report todir="${report.junit.dir}"/>
+        </junitreport>
+    </target>
+	
+	<target depends="init" name="zip-src">
+		<zip basedir="${src.dir}" destfile="${dist.base.dir}/${jarname}-src.zip"/>
+	</target>
+	
+	<target name="par" depends="junit, zip-src">
+		<copy todir="${build.par.dir}/classes">
+			<fileset dir="${build.cls.dir}"/>
+			<fileset dir="${basedir}">
+				<include name="ptplugin.xml"/>
+			</fileset>
+			<fileset dir="${resources.dir}" />
+		</copy>
+		<copy todir="${build.par.dir}/lib">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar"/>
+			</fileset>
+		</copy>
+		<jar destfile="${dist.base.dir}/${jarname}.par">
+			<fileset dir="${build.par.dir}"/>
+		</jar>
+	</target>
+</project>

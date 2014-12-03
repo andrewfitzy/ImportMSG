@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation=
+    "http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+
+    <!-- definition of any crawlers, No Crawlers are implemented in this example -->
+
+    <!-- definition of any extractors, No Extractors are implemented in this example -->
+
+    <!-- Transformers -->
+    <bean id="MSGTransformer" scope="prototype"
+        class="com.about80minutes.palantir.cedt.msg.MSGTransformer" />
+
+    <!-- Detector code -->
+    <!-- Within %PALANTIR_LIB%\pg-client-resources.jar
+         is a textResources directory containing another importApplicationContext.xml file, this already
+         defines the StructuresFileDetector priority as 3010 so we have to set ours as a lower number than
+         this so that our detector is called first, this gives ours a higher priority. see the file for
+         further detail on order of detection. -->
+    <bean id="MSGDetector"
+        class="com.about80minutes.palantir.cedt.msg.MSGDetector">
+        <property name="priority" value="3005" />
+        <property name="defaultVisible" value="true" />
+    </bean>
+
+	<!-- Detector Registry -->
+	<!-- Set up our own registry defining our new detector -->
+    <bean id="MSGDetectorRegistry"
+        class="com.palantir.api.dataintegration.detect.DetectorRegistry">
+        <constructor-arg>
+            <list>
+                <ref bean="MSGDetector" />
+            </list>
+        </constructor-arg>
+    </bean>
+</beans>

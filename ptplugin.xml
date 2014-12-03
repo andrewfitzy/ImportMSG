@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ptplugin xmlns="http://www.palantirtech.com/schemas/ptplugin/v2.1.0">
+	<uri>com.about80minutes.palantir.cedt.msg</uri>
+	<displayName>Outlook .msg CEDT Plugin</displayName>
+	<version>
+		<major>1</major>
+		<minor>0</minor>
+	</version>
+   <targetVersion>3.12</targetVersion>
+</ptplugin>
